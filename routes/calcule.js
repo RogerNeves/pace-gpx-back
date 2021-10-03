@@ -5,7 +5,7 @@ const xmlConverter = require('xml-js');
 const DOMParser = require('xmldom').DOMParser;
 const togeojson = require('togeojson')
 const routes = express.Router()
-const path = './runs/'
+const path = './files/'
 
 routes.post('/', async (req, res) => {
   try {
@@ -23,10 +23,10 @@ routes.post('/', async (req, res) => {
     }
     else {
       const distanceDivider = req.query.distanceDivider
-      const run = req.files.run
-      await run.mv(path + run.name)
-      const gpx = new DOMParser().parseFromString(fs.readFileSync(path + run.name, 'utf8'));
-      const geoJson = togeojson.gpx(gpx)
+      const file = req.files.file
+      const fileName = new Date().getTime()
+      await saveFile(file, fileName)
+      const geoJson = await findFile(fileName) 
 
       const coordinates = geoJson.features[0].geometry.coordinates
       const coordTimes = geoJson.features[0].properties.coordTimes
@@ -35,7 +35,7 @@ routes.post('/', async (req, res) => {
 
       const total = await buildTotal(coordinates, coordTimes)
 
-      deleteRun(run)
+      deleteFile(fileName)
       res.send({
         status: 200,
         message: 'Success',
@@ -52,6 +52,16 @@ routes.post('/', async (req, res) => {
   }
 })
 
+const saveFile = async (file, fileName) => {
+  await file.mv(path + fileName)
+}
+
+
+const findFile = async (fileName) => {
+  const gpx = await new DOMParser().parseFromString(fs.readFileSync(path + fileName, 'utf8'))
+  return await togeojson.gpx(gpx)
+}
+
 const divideDistance = async (coordinates, coordTimes, distanceDivider) => {
   const separatedList = []
   let distance = 0
@@ -61,7 +71,7 @@ const divideDistance = async (coordinates, coordTimes, distanceDivider) => {
     distance += calculeDistance(coordinates[index - 1][0], coordinates[index - 1][1], coordinates[index][0], coordinates[index][1])
 
     if (distance >= distanceDivider || index === coordinates.length - 1) {
-      
+
       if (separatedList.length === 0)
         fristIndex = 0
       else
@@ -152,8 +162,8 @@ const deg2rad = (deg) => {
   return deg * (Math.PI / 180)
 }
 
-const deleteRun = (run) => {
-  fs.unlinkSync(path + run.name);
+const deleteFile = (fileName) => {
+  fs.unlinkSync(path + fileName);
 }
 
 module.exports = routes
