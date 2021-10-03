@@ -12,9 +12,10 @@ app.use(fileUpload({
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(morgan('dev'))
+app.use(cors())
 
 const calculeRoute = require('./routes/calcule')
 
 app.use('/calcule', calculeRoute)
 
-app.listen(process.env.PORT || 3000)
+app.listen(process.env.PORT || 3001)
