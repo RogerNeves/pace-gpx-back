@@ -79,7 +79,7 @@ const divideDistance = async (coordinates, coordTimes, distanceDivider) => {
 
       total = await totalDistanceTime(coordinates.slice(fristIndex, index), coordTimes.slice(fristIndex, index))
 
-      separatedList.push(buildObject(distance, fristIndex, index, total.time))
+      separatedList.push(buildObject(Math.floor(distance), fristIndex, index, total.time))
       distance = 0
     }
   }
@@ -136,7 +136,7 @@ const totalDistanceTime = async (coordinates, coordTimes) => {
   seconds = Math.abs(Date.parse(coordTimes[coordTimes.length - 1]) - Date.parse(coordTimes[0])) / 1000
 
   return {
-    distance: distance,
+    distance: Math.floor(distance),
     time: seconds
   }
 }
